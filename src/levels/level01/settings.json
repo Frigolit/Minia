@@ -1,0 +1,8 @@
+{
+	"title": "First level",
+	"next_level": "level02",
+	"background": "bg",
+	"exits": {
+		"62,88": "secret01"
+	}
+}
