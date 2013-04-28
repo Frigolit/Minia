@@ -29,12 +29,12 @@ SOFTWARE.
 
 $(function() {
 	// Settings
-	var base_url = "/compo/ld26/game";
+	var base_url = "game";
 	var debug_mode = false;
 	
 	// ARE YOU INSANE?!
 	function compatfail() {
-		$("#fail").html("<img src=\"fission-mailed.png\" /><br/>Oops! Your browser doesn't seem to support HTML5 canvas! Please use Mozilla Firefox or Google Chrome instead.");
+		$("#fail").html("<img src=\"game/gfx/fission-mailed.png\" /><br/>Oops! Your browser doesn't seem to support HTML5 canvas! Please use Mozilla Firefox or Google Chrome instead.");
 	}
 	
 	try {
