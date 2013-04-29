@@ -55,6 +55,9 @@ $(function() {
 	var screen = screen_e[0];
 	var screen_ctx = screen.getContext("2d");
 	
+	screen.width = 320;
+	screen.height = 240;
+	
 	$(document)
 		.keydown(input_key_down)
 		.keyup(input_key_up);
@@ -140,18 +143,12 @@ $(function() {
 				"width": ch * ta,
 				"height": ch,
 			});
-			
-			screen.width = ch * ta;
-			screen.height = ch;
 		}
 		else {
 			screen_e.css({
 				"width": cw,
 				"height": cw / ta,
 			});
-			
-			screen.width = cw;
-			screen.height = cw / ta;
 		}
 	}
 	
@@ -419,8 +416,8 @@ $(function() {
 			debug_info = !debug_info;
 		}
 		
-		// Fallback
-		else console.log(k);
+		// Debugging
+		//else console.log(k);
 	}
 	
 	function input_key_up(e) {

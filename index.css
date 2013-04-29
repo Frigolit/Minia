@@ -20,3 +20,12 @@ a:hover { color: #5d5; }
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#393939', endColorstr='#1b1b1b',GradientType=0 );
 }
 
+canvas {
+	image-rendering: optimizeSpeed;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: -o-crisp-edges;
+	image-rendering: optimize-contrast;
+	-ms-interpolation-mode: nearest-neighbor;
+}
+
