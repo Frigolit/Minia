@@ -691,12 +691,13 @@ $(function() {
 		// ====================================================================================
 		// Particles
 		// ====================================================================================
-		for (var i = 0; i < particles.length; i++) {
+		for (var i = 0, j = particles.length; i < j; i++) {
 			var p = particles[i];
 			
 			if (!--p.life) {
 				particles.splice(i, 1);
 				i--;
+				j--;
 				continue;
 			}
 			
@@ -712,6 +713,7 @@ $(function() {
 			if (tnx < 0 || tnx >= level.width || tny < 0 || tny >= level.height) {
 				particles.splice(i, 1);
 				i--;
+				j--;
 				continue;
 			}
 			
@@ -725,6 +727,7 @@ $(function() {
 					
 					particles.splice(i, 1);
 					i--;
+					j--;
 				}
 			}
 			else {
@@ -784,7 +787,7 @@ $(function() {
 		}
 		
 		// Draw particles
-		for (var i = 0; i < particles.length; i++) {
+		for (var i = 0, j = particles.length; i < j; i++) {
 			var p = particles[i];
 			
 			ctx_root.fillStyle = "rgb(" + p.color[0] + "," + p.color[1] + "," + p.color[2] + ")";
@@ -793,7 +796,7 @@ $(function() {
 		
 		// Print stats
 		if (debug_info) {
-			ctx_root.font = "8px sans";
+			ctx_root.font = "8px Tahoma";
 			ctx_root.textBaseline = "top";
 			ctx_root.textAlign = "left";
 		
@@ -808,7 +811,7 @@ $(function() {
 		
 		// Dead?
 		if (!player.alive) {
-			ctx_root.font = "bold 12px sans";
+			ctx_root.font = "bold 12px Tahoma";
 			ctx_root.textBaseline = "middle";
 			ctx_root.textAlign = "center";
 			
@@ -825,7 +828,7 @@ $(function() {
 		}
 		
 		if (level.cleared) {
-			ctx_root.font = "bold 12px sans";
+			ctx_root.font = "bold 12px Tahoma";
 			ctx_root.textBaseline = "middle";
 			ctx_root.textAlign = "center";
 			
@@ -846,7 +849,7 @@ $(function() {
 		screen_ctx.drawImage(cv_root, 0, 0, screen.width, screen.height);
 		
 		// Update sprite animations
-		for (var i = 0; i < animsprites.length; i++) {
+		for (var i = 0, j = animsprites.length; i < j; i++) {
 			var s = animsprites[i];
 			
 			s.time += 1/30;
