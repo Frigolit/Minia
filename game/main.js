@@ -55,9 +55,6 @@ $(function() {
 	var screen = screen_e[0];
 	var screen_ctx = screen.getContext("2d");
 	
-	screen.width = 320;
-	screen.height = 240;
-	
 	$(document)
 		.keydown(input_key_down)
 		.keyup(input_key_up);
@@ -134,27 +131,36 @@ $(function() {
 	function resize() {
 		var cw = el_content.width();
 		var ch = el_content.height();
-		var ca = cw / ch;
 		
+		cw = Math.floor(cw / cv_root.width) * cv_root.width;
+		ch = Math.floor(ch / cv_root.height) * cv_root.height;
+		
+		var ca = cw / ch;
 		var ta = cv_root.width / cv_root.height;
 		
 		if (ca > ta) {
-			screen_e.css({
-				"width": ch * ta,
-				"height": ch,
-			});
+			screen.width = ch * ta;
+			screen.height = ch;
 		}
 		else {
-			screen_e.css({
-				"width": cw,
-				"height": cw / ta,
-			});
+			screen.width = cw;
+			screen.height = cw / ta;
 		}
+		
+		screen_e.css({
+			"width": screen.width,
+			"height": screen.height,
+		});
+		
+		screen_ctx.imageSmoothingEnabled = false;
+		screen_ctx.mozImageSmoothingEnabled = false;
+		screen_ctx.oImageSmoothingEnabled = false;
+		screen_ctx.webkitImageSmoothingEnabled = false;
 	}
 	
 	function load_level(n, cb) {
 		screen_ctx.fillStyle = "#fff";
-		screen_ctx.font = "bold 12px sans";
+		screen_ctx.font = "bold 12px 'Bitstream Vera Sans','Tahoma','sans'";
 		screen_ctx.textBaseline = "middle";
 		screen_ctx.textAlign = "center";
 		
@@ -227,7 +233,7 @@ $(function() {
 	resize();
 	
 	screen_ctx.fillStyle = "#fff";
-	screen_ctx.font = "bold 12px sans";
+	screen_ctx.font = "bold 12px 'Bitstream Vera Sans','Tahoma','sans'";
 	screen_ctx.textBaseline = "middle";
 	screen_ctx.textAlign = "center";
 	
@@ -796,7 +802,7 @@ $(function() {
 		
 		// Print stats
 		if (debug_info) {
-			ctx_root.font = "8px Tahoma";
+			ctx_root.font = "8px 'Bitstream Vera Sans','Tahoma','sans'";
 			ctx_root.textBaseline = "top";
 			ctx_root.textAlign = "left";
 		
@@ -811,7 +817,7 @@ $(function() {
 		
 		// Dead?
 		if (!player.alive) {
-			ctx_root.font = "bold 12px Tahoma";
+			ctx_root.font = "bold 12px 'Bitstream Vera Sans','Tahoma','sans'";
 			ctx_root.textBaseline = "middle";
 			ctx_root.textAlign = "center";
 			
@@ -828,7 +834,7 @@ $(function() {
 		}
 		
 		if (level.cleared) {
-			ctx_root.font = "bold 12px Tahoma";
+			ctx_root.font = "bold 12px 'Bitstream Vera Sans','Tahoma','sans'";
 			ctx_root.textBaseline = "middle";
 			ctx_root.textAlign = "center";
 			
