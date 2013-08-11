@@ -43,7 +43,7 @@ window.Minia.Game = new (function() {
 	self.input_key_down = function(e) {
 		var k = e.keyCode;
 	
-		if (((!player.alive && (k == 32 || k == 90)) || k == 82) && !level.cleared) {	// r - respawn
+		if (((!player.alive && (k == 32 || k == 90 || k == 13)) || k == 82) && !level.cleared) {	// r - respawn
 			respawn();
 		}
 		else if (k == 37) {
