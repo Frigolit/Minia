@@ -144,9 +144,15 @@ window.Minia.Game = new (function() {
 		var d = window.Minia.Resources.resmap.levels.ref.levels[n];
 		
 		level = d;
-		level.tiles_orig = JSON.parse(level.tiles_json);
+		
+		if (!level.tiles_orig) level.tiles_orig = JSON.parse(level.tiles_json);
+		if (!level.next_level_orig) level.next_level_orig = level.next_level;
+		
 		level.tiles = [];
 		level.tiledata = [];
+		
+		level.cleared = false;
+		level.next_level = level.next_level_orig;
 		
 		level.background_ref = (resmap[level.background] || resmap["bg2"]).ref;
 		
