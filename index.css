@@ -21,6 +21,7 @@ a:hover { color: #5d5; }
 }
 
 canvas {
+	cursor: none;
 	image-rendering: optimizeSpeed;
 	image-rendering: -moz-crisp-edges;
 	image-rendering: -webkit-optimize-contrast;
