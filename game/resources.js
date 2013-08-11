@@ -36,6 +36,7 @@ window.Minia.Resources = new (function() {
 	var tiles;
 	
 	var resources = [
+		{ "name": "levels",      "file": "/levels.json",         "type": "json" },
 		{ "name": "splash",      "file": "/gfx/splash.png",      "type": "gfx" },
 		{ "name": "menu_bg",     "file": "/gfx/menu_bg.png",     "type": "gfx" },
 		{ "name": "menu_header", "file": "/gfx/menu_header.png", "type": "gfx" },

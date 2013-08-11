@@ -58,15 +58,17 @@ window.Minia.Game = new (function() {
 	var think_step = 0;
 	var debug_info = false;
 	
-	self.start = function(_main, _ctx) {
-		main = _main;
-		ctx_root = _ctx;
-		
+	function bind_objects() {
 		resmap = window.Minia.Resources.resmap;
 		sprites = window.Minia.Resources.sprites;
 		tiles = window.Minia.Resources.tiles;
 		tiledata = window.Minia.Resources.tiledata;
 		tile_explode_colormap = window.Minia.Resources.tile_explode_colormap;
+	}
+	
+	self.start = function(_main, _ctx) {
+		main = _main;
+		ctx_root = _ctx;
 	};
 	
 	self.input_key_down = function(e) {
@@ -86,7 +88,8 @@ window.Minia.Game = new (function() {
 		}
 		else if (k == 13 && level.cleared) {	// enter - next level
 			reset_state();
-			load_level(level.next_level, respawn);
+			load_level(level.next_level);
+			respawn();
 		}
 	
 		// Debug keys
@@ -122,47 +125,35 @@ window.Minia.Game = new (function() {
 		}
 	};
 	
-	function load_level(n, cb) {
-		/*
-		screen_ctx.fillStyle = "#fff";
-		screen_ctx.font = "bold 12px 'Bitstream Vera Sans','Tahoma','sans'";
-		screen_ctx.textBaseline = "middle";
-		screen_ctx.textAlign = "center";
+	function load_level(n) {
+		bind_objects();
 		
-		screen_ctx.clearRect(0, 0, screen.width, screen.height);
-		screen_ctx.fillText("Loading level...", screen.width / 2, screen.height / 2);
-		*/
+		var d = window.Minia.Resources.resmap.levels.ref.levels[n];
 		
-		$.get(
-			base_url + "/levels/" + n + ".json",
-			function(data) {
-				level = data;
-				
-				level.tiles_orig = level.tiles;
-				level.tiles = [];
-				level.tiledata = [];
-				
-				level.background_ref = (resmap[level.background] || resmap.bg).ref;
-				
-				if (!level.exits) level.exits = {};
-				
-				cv_level.width = level.width * 8;
-				cv_level.height = level.height * 8;
-				
-				reset_state();
-				init_level();
-				
-				console.log("Loaded level: " + level.title);
-				cb();
-			});
+		level = d;
+		level.tiles_orig = JSON.parse(level.tiles_json);
+		level.tiles = [];
+		level.tiledata = [];
+		
+		level.background_ref = (resmap[level.background] || resmap["bg2"]).ref;
+		
+		if (!level.exits) level.exits = {};
+		
+		cv_level.width = level.width * 8;
+		cv_level.height = level.height * 8;
+		
+		reset_state();
+		init_level();
+		
+		console.log("Loaded level: " + level.title);
 	}
 	
 	self.set_level = function(l) {
-		load_level(l, respawn);
+		load_level(l);
+		respawn();
 	};
 	
 	function reset_state() {
-		console.log("reset_state()");
 		if (level.timermap) {
 			$.each(level.timermap, function(k, v) {
 				clearTimeout(v);
