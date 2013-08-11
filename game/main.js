@@ -76,8 +76,8 @@ $(function() {
 		var el_content = $("#content");
 	
 		var screen_e = $("<canvas>");
-		screen = screen_e[0];
-		screen_ctx = screen.getContext("2d");
+		var screen = screen_e[0];
+		var screen_ctx = screen.getContext("2d");
 		
 		function disable_canvas_smoothing(ctx) {
 			ctx.imageSmoothingEnabled = false;
