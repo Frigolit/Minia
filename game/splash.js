@@ -122,7 +122,7 @@ window.Minia.Splash = new (function() {
 				}
 			}
 		}
-		else if (counter < 30 * 3) {
+		else if (counter < 80) {
 			counter++;
 		}
 		else if (!fadeout) fadeout = 1;

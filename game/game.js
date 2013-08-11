@@ -31,6 +31,8 @@ window.Minia.Game = new (function() {
 	var self = this;
 	var base_url = "game";
 	
+	self.name = "Game";
+	
 	// References
 	var main;
 	var ctx_root;
@@ -69,6 +71,14 @@ window.Minia.Game = new (function() {
 	self.start = function(_main, _ctx) {
 		main = _main;
 		ctx_root = _ctx;
+		
+		ctx_root.globalAlpha = 1.0;
+	};
+	
+	self.stop = function() {
+		reset_state();
+		level = undefined;
+		player = undefined;
 	};
 	
 	self.input_key_down = function(e) {
@@ -90,6 +100,9 @@ window.Minia.Game = new (function() {
 			reset_state();
 			load_level(level.next_level);
 			respawn();
+		}
+		else if (k == 27) {		// Escape - Exit to menu
+			window.Minia.Main.start_controller(window.Minia.Menu);
 		}
 	
 		// Debug keys
@@ -421,6 +434,7 @@ window.Minia.Game = new (function() {
 					else player.direction = "left";
 					
 					player.x_velocity -= 1;
+					if (player.x_velocity < -2.0) player.x_velocity = -2.0;
 				}
 				
 				if (player.walk_right && player.x_velocity < 2.0) {
@@ -428,6 +442,7 @@ window.Minia.Game = new (function() {
 					else player.direction = "right";
 					
 					player.x_velocity += 1;
+					if (player.x_velocity > 2.0) player.x_velocity = 2.0;
 				}
 			}
 			

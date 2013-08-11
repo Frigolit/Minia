@@ -33,6 +33,8 @@ $(function() {
 	window.Minia.Main = new (function() {
 		var self = this;
 		
+		self.version = "0.4";
+		
 		// Make sure all components are loaded
 		var reqcomps = [ "Game", "Menu", "Resources", "Splash" ];
 		for (var i = 0, j = reqcomps.length; i < j; i++) {
@@ -63,10 +65,6 @@ $(function() {
 		var Menu = window.Minia.Menu;
 		var Resources = window.Minia.Resources;
 		var Splash = window.Minia.Splash;
-	
-		// Settings
-		var base_url = "game";
-		var debug_mode = false;
 		
 		// Some stuff here
 		var controller;
@@ -164,7 +162,7 @@ $(function() {
 		screen_ctx.textAlign = "center";
 		
 		Resources.load_resources(
-			base_url,
+			"game",
 			function() {
 				screen_ctx.clearRect(0, 0, screen.width, screen.height);
 				screen_ctx.fillText("Initializing resources...", screen.width / 2, screen.height / 2);
