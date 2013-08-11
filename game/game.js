@@ -110,7 +110,8 @@ window.Minia.Game = new (function() {
 				level = data;
 				
 				level.tiles_orig = level.tiles;
-				level.tiles = undefined;
+				level.tiles = [];
+				level.tiledata = [];
 				
 				level.background_ref = (resmap[level.background] || resmap.bg).ref;
 				
@@ -118,6 +119,9 @@ window.Minia.Game = new (function() {
 				
 				cv_level.width = level.width * 8;
 				cv_level.height = level.height * 8;
+				
+				reset_state();
+				init_level();
 				
 				console.log("Loaded level: " + level.title);
 				cb();
@@ -129,6 +133,7 @@ window.Minia.Game = new (function() {
 	};
 	
 	function reset_state() {
+		console.log("reset_state()");
 		if (level.timermap) {
 			$.each(level.timermap, function(k, v) {
 				clearTimeout(v);
@@ -140,8 +145,6 @@ window.Minia.Game = new (function() {
 		camera_shake_decrement = 1;
 		
 		particles = [];
-		level.tiles = [];
-		level.tiledata = [];
 		level.entities = [];
 	}
 	
@@ -160,7 +163,26 @@ window.Minia.Game = new (function() {
 		
 		reset_state();
 		
-		// Render tiles
+		// Reset tiles and tile data
+		for (var x = 0; x < level.width; x++) {
+			for (var y = 0; y < level.height; y++) {
+				if (level.tiles_orig[x][y] == 2) {
+					// Redraw blue blocks
+					level.tiles[x][y] = level.tiles_orig[x][y];
+					redraw_tile(x, y);
+				}
+				else if (level.tiles_orig[x][y] == 7) {
+					// Checkpoint entity
+					level.entities.push({ "x": x * 8, "y": y * 8, "type": "checkpoint", "state": "inactive", "sprite": "checkpoint_inactive" });
+				}
+				
+				// Always reset tile data
+				level.tiledata[x][y] = 0;
+			}
+		}
+	}
+	
+	function init_level() {
 		ctx_level.clearRect(0, 0, level.width * 8, level.height * 8);
 		for (var x = 0; x < level.width; x++) {
 			var t = [];
@@ -170,10 +192,7 @@ window.Minia.Game = new (function() {
 				var n = level.tiles_orig[x][y];
 				
 				if (n) {
-					if (n == 7) {
-						n = 0;
-						level.entities.push({ "x": x * 8, "y": y * 8, "type": "checkpoint", "state": "inactive", "sprite": "checkpoint_inactive" });
-					}
+					if (n == 7) n = 0;
 					else ctx_level.drawImage(tiles[n], x * 8, y * 8);
 				}
 				
@@ -193,6 +212,8 @@ window.Minia.Game = new (function() {
 		if (t && t != 7) {
 			ctx_level.drawImage(tiles[t], x * 8, y * 8);
 		}
+		
+		level.tiledata[x][y] = 0;
 	}
 	
 	function draw_sprite(n, x, y) {
