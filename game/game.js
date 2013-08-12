@@ -509,8 +509,7 @@ window.Minia.Game = new (function() {
 					e.state = "active";
 					e.sprite = "checkpoint_active";
 					
-					level.startpos[0] = Math.floor(e.x / 8);
-					level.startpos[1] = Math.floor(e.y / 8);
+					level.startpos = [ Math.floor(e.x / 8), Math.floor(e.y / 8) ];
 				}
 			}
 		}
