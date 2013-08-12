@@ -39,6 +39,7 @@ window.Minia.Menu = new (function() {
 	var img_bg;
 	var img_header;
 	var img_raindrop;
+	var img_nothumb;
 	
 	var cv_version;
 	var ctx_version;
@@ -72,6 +73,7 @@ window.Minia.Menu = new (function() {
 	var levelselect_current;
 	
 	var levelmap;
+	var levelthumbs = {};
 	
 	function render_mainmenu() {
 		// Clear everything
@@ -116,7 +118,8 @@ window.Minia.Menu = new (function() {
 		if (levelselect_update) {
 			levelselect_update = 0;
 			
-			var level = levelmap.levels[levelmap.levelindex[levelselect_current]];
+			var level_id = levelmap.levelindex[levelselect_current];
+			var level = levelmap.levels[level_id];
 			
 			// Clear everything
 			ctx_levelselect.clearRect(0, 0, cv_levelselect.width, cv_levelselect.height);
@@ -132,14 +135,32 @@ window.Minia.Menu = new (function() {
 			ctx_levelselect.textAlign = "center";
 			ctx_levelselect.textBaseline = "top";
 			
+			var t = "#" + (levelselect_current + 1) + " - " + level.title;
+			
 			ctx_levelselect.fillStyle = "#000";
-			ctx_levelselect.fillText(level.title, cv_levelselect.width / 2, 3);
-			ctx_levelselect.fillText(level.title, cv_levelselect.width / 2, 5);
-			ctx_levelselect.fillText(level.title, cv_levelselect.width / 2 - 1, 4);
-			ctx_levelselect.fillText(level.title, cv_levelselect.width / 2 + 1, 4);
+			ctx_levelselect.fillText(t, cv_levelselect.width / 2, 3);
+			ctx_levelselect.fillText(t, cv_levelselect.width / 2, 5);
+			ctx_levelselect.fillText(t, cv_levelselect.width / 2 - 1, 4);
+			ctx_levelselect.fillText(t, cv_levelselect.width / 2 + 1, 4);
 			
 			ctx_levelselect.fillStyle = "#fff";
-			ctx_levelselect.fillText(level.title, cv_levelselect.width / 2, 4);
+			ctx_levelselect.fillText(t, cv_levelselect.width / 2, 4);
+			
+			// Draw thumbnail or placeholder
+			ctx_levelselect.strokeStyle = "#000";
+			ctx_levelselect.lineWidth = 1.0;
+			
+			if (!levelthumbs[level_id] && level.thumbnail) {
+				var img = new Image();
+				img.onload = function() {
+					levelthumbs[level_id] = img;
+					levelselect_update = 1;
+				};
+				img.src = level.thumbnail;
+			}
+			
+			ctx_levelselect.drawImage(levelthumbs[level_id] || img_nothumb, 8, 28);
+			ctx_levelselect.strokeRect(8, 28, 80, 60);
 		}
 		
 		// Render to screen
@@ -192,7 +213,7 @@ window.Minia.Menu = new (function() {
 		ctx_levelselect = cv_levelselect.getContext("2d");
 		
 		cv_levelselect.width = 240;
-		cv_levelselect.height = 140;
+		cv_levelselect.height = 96;
 		
 		levelselect_update = 1;
 		levelselect_current = 0;
@@ -213,6 +234,7 @@ window.Minia.Menu = new (function() {
 		img_cursor = Minia.Resources.tiles[4];
 		img_bg = Minia.Resources.resmap.menu_bg.ref;
 		img_header = Minia.Resources.resmap.menu_header.ref;
+		img_nothumb = Minia.Resources.resmap.nothumb.ref;
 		levelmap = Minia.Resources.resmap.levels.ref;
 		
 		// Reset some stuff for the canvases

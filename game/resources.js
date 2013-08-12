@@ -36,15 +36,16 @@ window.Minia.Resources = new (function() {
 	var tiles;
 	
 	var resources = [
-		{ "name": "levels",      "file": "/levels.json",         "type": "json" },
-		{ "name": "splash",      "file": "/gfx/splash.png",      "type": "gfx" },
-		{ "name": "menu_bg",     "file": "/gfx/menu_bg.png",     "type": "gfx" },
-		{ "name": "menu_header", "file": "/gfx/menu_header.png", "type": "gfx" },
-		{ "name": "sprites",     "file": "/gfx/sprites.png",     "type": "gfx" },
-		{ "name": "tiles",       "file": "/gfx/tiles.png",       "type": "gfx" },
-		{ "name": "bg",          "file": "/gfx/bg.png",          "type": "gfx" },
-		{ "name": "bg2",         "file": "/gfx/bg2.png",         "type": "gfx" },
-		{ "name": "bg3",         "file": "/gfx/bg3.png",         "type": "gfx" }
+		{ "name": "levels",      "file": "/levels.json",                     "type": "json" },
+		{ "name": "splash",      "file": "/gfx/splash.png",                  "type": "gfx" },
+		{ "name": "menu_bg",     "file": "/gfx/menu_bg.png",                 "type": "gfx" },
+		{ "name": "menu_header", "file": "/gfx/menu_header.png",             "type": "gfx" },
+		{ "name": "nothumb",     "file": "/gfx/level_thumbnail_missing.png", "type": "gfx" },
+		{ "name": "sprites",     "file": "/gfx/sprites.png",                 "type": "gfx" },
+		{ "name": "tiles",       "file": "/gfx/tiles.png",                   "type": "gfx" },
+		{ "name": "bg",          "file": "/gfx/bg.png",                      "type": "gfx" },
+		{ "name": "bg2",         "file": "/gfx/bg2.png",                     "type": "gfx" },
+		{ "name": "bg3",         "file": "/gfx/bg3.png",                     "type": "gfx" }
 	];
 	
 	self.tiledata = [

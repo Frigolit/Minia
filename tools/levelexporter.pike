@@ -76,6 +76,17 @@ int main(int argc, array argv) {
 			"tiles_json": Standards.JSON.encode(a_tiles, Standards.JSON.ASCII_ONLY),
 		]);
 		
+		// Add thumbnail if available (PNG/JPG/GIF)
+		if (Stdio.is_file(combine_path(p, "thumbnail.png"))) {
+			r["thumbnail"] = "data:image/png;base64," + MIME.encode_base64(Stdio.read_file(combine_path(p, "thumbnail.png")), 1);
+		}
+		else if (Stdio.is_file(combine_path(p, "thumbnail.jpg"))) {
+			r["thumbnail"] = "data:image/jpeg;base64," + MIME.encode_base64(Stdio.read_file(combine_path(p, "thumbnail.jpg")), 1);
+		}
+		else if (Stdio.is_file(combine_path(p, "thumbnail.gif"))) {
+			r["thumbnail"] = "data:image/gif;base64," + MIME.encode_base64(Stdio.read_file(combine_path(p, "thumbnail.gif")), 1);
+		}
+		
 		// Add to result
 		exportdata->levels[n] = r;
 	}
