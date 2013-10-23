@@ -733,11 +733,27 @@ window.Minia.Game = new (function() {
 		}
 		
 		// Draw particles
-		for (var i = 0, j = particles.length; i < j; i++) {
-			var p = particles[i];
+		if (particles.length) {
+			var pd = ctx_root.getImageData(0, 0, 320, 240);
+			var pdd = pd.data;
 			
-			ctx_root.fillStyle = "rgb(" + p.color[0] + "," + p.color[1] + "," + p.color[2] + ")";
-			ctx_root.fillRect(Math.round(p.x) - camera_x, Math.round(p.y) - camera_y, 1, 1);
+			for (var i = 0, j = particles.length; i < j; i++) {
+				var p = particles[i];
+				
+				var x = Math.round(Math.round(p.x) - camera_x);
+				var y = Math.round(Math.round(p.y) - camera_y);
+				
+				if (x >= 0 && x < 320 && y >= 0 && y < 240) {
+					var n = (x + y * 320) * 4;
+					
+					pdd[n] = p.color[0];
+					pdd[n + 1] = p.color[1];
+					pdd[n + 2] = p.color[2];
+					pdd[n + 3] = 255;
+				}
+			}
+			
+			ctx_root.putImageData(pd, 0, 0);
 		}
 		
 		// Print stats
