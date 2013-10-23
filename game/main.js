@@ -33,7 +33,7 @@ $(function() {
 	window.Minia.Main = new (function() {
 		var self = this;
 		
-		self.version = "0.4";
+		self.version = "0.5";
 		
 		// Make sure all components are loaded
 		var reqcomps = [ "Game", "Menu", "Resources", "Splash" ];
@@ -168,11 +168,11 @@ $(function() {
 				screen_ctx.fillText("Initializing resources...", screen.width / 2, screen.height / 2);
 				
 				resmap = Resources.resmap;
-				Resources.process_resources();
+				Resources.process_resources(function() {
+					screen_ctx.clearRect(0, 0, screen.width, screen.height);
 				
-				screen_ctx.clearRect(0, 0, screen.width, screen.height);
-				
-				start_controller(Splash);
+					start_controller(Splash);
+				});
 			},
 			function(res, url) {
 				screen_ctx.clearRect(0, 0, screen.width, screen.height);

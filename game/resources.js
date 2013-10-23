@@ -37,31 +37,21 @@ window.Minia.Resources = new (function() {
 	
 	var resources = [
 		{ "name": "levels",      "file": "/levels.json",                     "type": "json" },
+		{ "name": "tiles",       "file": "/tiles.json",                      "type": "json" },
 		{ "name": "splash",      "file": "/gfx/splash.png",                  "type": "gfx" },
 		{ "name": "menu_bg",     "file": "/gfx/menu_bg.png",                 "type": "gfx" },
 		{ "name": "menu_header", "file": "/gfx/menu_header.png",             "type": "gfx" },
 		{ "name": "nothumb",     "file": "/gfx/level_thumbnail_missing.png", "type": "gfx" },
 		{ "name": "sprites",     "file": "/gfx/sprites.png",                 "type": "gfx" },
-		{ "name": "tiles",       "file": "/gfx/tiles.png",                   "type": "gfx" },
 		{ "name": "bg",          "file": "/gfx/bg.png",                      "type": "gfx" },
 		{ "name": "bg2",         "file": "/gfx/bg2.png",                     "type": "gfx" },
 		{ "name": "bg3",         "file": "/gfx/bg3.png",                     "type": "gfx" }
 	];
 	
-	self.tiledata = [
-		0x00,	// Air
-		0x01,	// Wall
-		0x01,	// Ice (?)
-		0x02,	// Spikes
-		0x00,	// Tiled wall
-		0x00,	// Tiled wall (broken)
-		0x00,	// Exit
-		0x00,	// Checkpoint (converted to entity)
-		0x00,	// Warning sign
-		0x01,	// Crate
-		0x02,	// Spikes + bg
-	];
+	self.tiledata = [];
+	self.tilemap = [];
 	
+	// FIXME: The colormap is completely outdated
 	self.tile_explode_colormap = [
 		[],
 		[ [ 200, 200, 200 ], [ 255, 255, 255 ] ],	// Wall
@@ -119,28 +109,48 @@ window.Minia.Resources = new (function() {
 		cb_done();
 	}
 	
-	function process_resources() {
+	function process_resources(cb) {
 		console.log("Initializing resources...");
-		process_tiles();
-		process_sprites();
+		process_tiles(0, function() {
+			console.log(tiles);
+			
+			process_sprites();
 		
-		self.sprites = sprites;
-		self.tiles = tiles;
+			self.sprites = sprites;
+			self.tiles = tiles;
+			
+			cb();
+		});
 	}
 
-	function process_tiles() {
-		var res = self.resmap["tiles"];
-		tiles = [];
-		for (var i = 0; i < 256; i++) {
-			var x = (i % 16) * 8;
-			var y = Math.floor(i / 16) * 8;
+	function process_tiles(i, cb) {
+		var res = self.resmap["tiles"].ref;
 		
-			var c = document.createElement("canvas");
-			c.width = 8;
-			c.height = 8;
-			c.getContext("2d").drawImage(res.ref, x, y, 8, 8, 0, 0, 8, 8);
-		
-			tiles.push(c);
+		if (!i) {
+			tiles = [ undefined ];
+			
+			process_tiles(1, cb);
+		}
+		else {
+			var tid = res.index[i];
+			var t = res.tilemap[tid];
+			
+			console.log(tid, t);
+			
+			self.tiledata[i] = t.flags;
+			
+			var next = i + 1;
+			
+			var img = new Image();
+			img.onload = function() {
+				tiles.push(img);
+				self.tilemap[tid] = img;
+				
+				if (next == res.index.length) cb();
+				else process_tiles(next, cb);
+			};
+			
+			img.src = t.png;
 		}
 	}
 

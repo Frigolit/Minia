@@ -231,7 +231,7 @@ window.Minia.Menu = new (function() {
 		main.disable_canvas_smoothing(ctx);
 		
 		// Get some resources we need
-		img_cursor = Minia.Resources.tiles[4];
+		img_cursor = Minia.Resources.tilemap["bg_bluewall"];
 		img_bg = Minia.Resources.resmap.menu_bg.ref;
 		img_header = Minia.Resources.resmap.menu_header.ref;
 		img_nothumb = Minia.Resources.resmap.nothumb.ref;

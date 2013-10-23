@@ -47,7 +47,11 @@ window.Minia.Game = new (function() {
 	var cv_level = document.createElement("canvas");
 	var ctx_level = cv_level.getContext("2d");
 	
+	var cv_levelbg = document.createElement("canvas");
+	var ctx_levelbg = cv_levelbg.getContext("2d");
+	
 	// Level
+	var levelsrc;
 	var level;
 	var player;
 	
@@ -60,10 +64,15 @@ window.Minia.Game = new (function() {
 	var think_step = 0;
 	var debug_info = false;
 	
+	var TILE_BLUEBLOCK;
+	var TILE_EXIT;
+	var TILE_POTATO;
+	
 	function bind_objects() {
 		resmap = window.Minia.Resources.resmap;
 		sprites = window.Minia.Resources.sprites;
 		tiles = window.Minia.Resources.tiles;
+		tilemap = window.Minia.Resources.tilemap;
 		tiledata = window.Minia.Resources.tiledata;
 		tile_explode_colormap = window.Minia.Resources.tile_explode_colormap;
 	}
@@ -138,30 +147,77 @@ window.Minia.Game = new (function() {
 		}
 	};
 	
+	function json_copy(src) {
+		return JSON.parse(JSON.stringify(src));
+	}
+	
 	function load_level(n) {
 		bind_objects();
 		
+		TILE_BLUEBLOCK = tiles.indexOf(tilemap["blueblock"]);
+		TILE_EXIT      = tiles.indexOf(tilemap["exit"]);
+		TILE_POTATO    = tiles.indexOf(tilemap["potato"]);
+		
 		var d = window.Minia.Resources.resmap.levels.ref.levels[n];
 		
-		level = d;
+		levelsrc = d;
+		level = {};
 		
+		level.title = levelsrc.title;
+		level.width = levelsrc.width;
+		level.height = levelsrc.height;
+		level.exits = levelsrc.exits;
+		
+		/*
 		if (!level.tiles_orig) level.tiles_orig = JSON.parse(level.tiles_json);
 		if (!level.next_level_orig) level.next_level_orig = level.next_level;
 		if (!level.startpos_orig) level.startpos_orig = level.startpos;
+		*/
+		
+		level.tiles_orig = json_copy(levelsrc.layers.main);
 		
 		level.tiles = [];
 		level.tiledata = [];
 		
+		// Initialize layers
+		level.layers = {};
+		$.each(levelsrc.layers, function(k, v) {
+			if (k == "main") return;
+			
+			level.layers[k] = {
+				"tiles": json_copy(v),
+			};
+		});
+		
+		if (level.layers.background) {
+			level.layers.background.ctx = ctx_levelbg;
+		}
+		
+		// Initialize exit lookup mapping
+		level.exitmap = {};
+		for (var i = 0; i < level.exits.length; i++) {
+			var e = level.exits[i];
+			level.exitmap[e.x + "," + e.y] = e;
+		}
+		
+		// Process entities
+		for (var i = 0; i < levelsrc.entities.length; i++) {
+			var e = levelsrc.entities[i];
+			if (e.type == "player") {
+				level.startpos_initial = [ e.x, e.y ];
+			}
+		}
+		
 		level.cleared = false;
-		level.next_level = level.next_level_orig;
-		level.startpos = level.startpos_orig;
+		level.startpos = level.startpos_initial;
 		
-		level.background_ref = (resmap[level.background] || resmap["bg2"]).ref;
-		
-		if (!level.exits) level.exits = {};
+		level.background_ref = (resmap[levelsrc.background] || resmap["bg2"]).ref;
 		
 		cv_level.width = level.width * 8;
 		cv_level.height = level.height * 8;
+		
+		cv_levelbg.width = cv_level.width;
+		cv_levelbg.height = cv_level.height;
 		
 		reset_state();
 		init_level();
@@ -207,25 +263,47 @@ window.Minia.Game = new (function() {
 		// Reset tiles and tile data
 		for (var x = 0; x < level.width; x++) {
 			for (var y = 0; y < level.height; y++) {
-				if (level.tiles_orig[x][y] == 2) {
+				if (level.tiles_orig[x][y] == TILE_BLUEBLOCK) {
 					// Redraw blue blocks
 					level.tiles[x][y] = level.tiles_orig[x][y];
 					redraw_tile(x, y);
 				}
-				else if (level.tiles_orig[x][y] == 7) {
+				/*
+				else if (level.tiles_orig[x][y] == 7) {	// FIXME
 					// Checkpoint entity
 					level.entities.push({ "x": x * 8, "y": y * 8, "type": "checkpoint", "state": "inactive", "sprite": "checkpoint_inactive" });
 				}
+				*/
 				
 				// Always reset tile data
 				level.tiledata[x][y] = 0;
 			}
+		}
+		
+		// Initialize entities
+		for (var i = 0; i < levelsrc.entities.length; i++) {
+			var e = levelsrc.entities[i];
+			
+			if (e.type == "checkpoint") {
+				level.entities.push({ "x": e.x * 8, "y": e.y * 8, "type": "checkpoint", "state": "inactive", "sprite": "checkpoint_inactive" });
+			}
+		}
+		
+		// Draw exits
+		for (var i = 0; i < level.exits.length; i++) {
+			var e = level.exits[i];
+			
+			var potato = e.flags.indexOf("potato") > -1;
+			
+			level.tiles[e.x][e.y] = potato ? TILE_POTATO : TILE_EXIT;
+			redraw_tile(e.x, e.y);
 		}
 	}
 	
 	function init_level() {
 		ctx_level.clearRect(0, 0, level.width * 8, level.height * 8);
 		for (var x = 0; x < level.width; x++) {
+			// Process and draw main layer tiles
 			var t = [];
 			var td = [];
 			
@@ -244,17 +322,35 @@ window.Minia.Game = new (function() {
 			level.tiles.push(t);
 			level.tiledata.push(td);
 		}
+		
+		// Draw background layer tiles
+		if (level.layers.background) {
+			for (var y = 0; y < level.height; y++) {
+				for (var x = 0; x < level.width; x++) {
+					redraw_layer_tile(level.layers.background, x, y);
+				}
+			}
+		}
 	}
 	
 	function redraw_tile(x, y) {
 		ctx_level.clearRect(x * 8, y * 8, 8, 8);
 		
 		var t = level.tiles[x][y];
-		if (t && t != 7) {
+		if (t) {
 			ctx_level.drawImage(tiles[t], x * 8, y * 8);
 		}
 		
 		level.tiledata[x][y] = 0;
+	}
+	
+	function redraw_layer_tile(layer, x, y) {
+		layer.ctx.clearRect(x * 8, y * 8, 8, 8);
+		
+		var t = layer.tiles[x][y];
+		if (t) {
+			layer.ctx.drawImage(tiles[t], x * 8, y * 8);
+		}
 	}
 	
 	function draw_sprite(n, x, y) {
@@ -284,35 +380,52 @@ window.Minia.Game = new (function() {
 		for (var i = 0; i < (count || 256); i++) {
 			var n = Math.random();
 			
-			spawn_particle(
-				x + Math.random() * w,
-				y + Math.random() * h,
-				Math.random() * (Math.PI * 2),
-				linear(min_velocity, max_velocity, Math.random()),
-				[
-					Math.round(linear(color_min[0], color_max[0], n)),
-					Math.round(linear(color_min[1], color_max[1], n)),
-					Math.round(linear(color_min[2], color_max[2], n))
-				],
-				life || 100,
-				sticky);
+			try {
+				spawn_particle(
+					x + Math.random() * w,
+					y + Math.random() * h,
+					Math.random() * (Math.PI * 2),
+					linear(min_velocity, max_velocity, Math.random()),
+					[
+						Math.round(linear(color_min[0], color_max[0], n)),
+						Math.round(linear(color_min[1], color_max[1], n)),
+						Math.round(linear(color_min[2], color_max[2], n))
+					],
+					life || 100,
+					sticky);
+			}
+			catch (e) { }
 		}
 	}
 	
 	function explode_tile(x, y) {
+		var bgl = level.layers.background;
+		
 		if (x < 0 || x >= level.width || y < 0 || y >= level.height) return;
-		if (!level.tiles[x][y]) return;
+		if (!level.tiles[x][y] && (!bgl || !bgl.tiles[x][y])) return;
 		
-		var c = tile_explode_colormap[level.tiles[x][y]];
-		explode(x * 8, y * 8, 8, 8, 32, 0.0, 4.0, c[0], c[1], 25);
+		if (level.tiles[x][y]) {
+			var c = tile_explode_colormap[level.tiles[x][y]];
+			explode(x * 8, y * 8, 8, 8, 32, 0.0, 4.0, c[0], c[1], 25);
+			
+			level.tiles[x][y] = 0;
+			redraw_tile(x, y);
+		}
 		
-		level.tiles[x][y] = 0;
-		redraw_tile(x, y);
+		if (bgl && bgl.tiles[x][y]) {
+			var c = tile_explode_colormap[bgl.tiles[x][y]];
+			explode(x * 8, y * 8, 8, 8, 32, 0.0, 4.0, c[0], c[1], 25);
+			
+			bgl.tiles[x][y] = 0;
+			redraw_layer_tile(bgl, x, y);
+		}
 	}
 	
 	function explode_tile_chain(x, y) {
+		var bgl = level.layers.background;
+		
 		if (x < 0 || x >= level.width || y < 0 || y >= level.height) return;
-		if (!level.tiles[x][y]) return;
+		if (!level.tiles[x][y] && (!bgl || !bgl.tiles[x][y])) return;
 		if (level.timermap["expchain_" + x + "_" + y]) return;
 		
 		explode_tile(x, y);
@@ -331,7 +444,7 @@ window.Minia.Game = new (function() {
 	function check_tiles_below(x, y) {
 		var t = level.tiles[x][y];
 		
-		if (t == 2) {
+		if (t == TILE_BLUEBLOCK) {
 			if (++level.tiledata[x][y] == 7) {
 				if (level.tiles[x][y - 1] == 4) level.tiles[x][y] = 4;
 				else level.tiles[x][y] = 0;
@@ -348,26 +461,15 @@ window.Minia.Game = new (function() {
 	function check_tiles(x, y) {
 		var t = level.tiles[x][y];
 		
-		if (t == 6) {
+		if (t == TILE_EXIT || t == TILE_POTATO) {
+			var exit = level.exitmap[x + "," + y];
+			
+			level.next_level = exit.target;
+			
 			player.active = false;
 			player.visible = false;
 			level.cleared = true;
-			
-			camera_shake = 10;
-			camera_shake_decrement = 0.15;
-			
-			explode_tile_chain(x, y);
-			explode(x * 8, y * 8, 8, 8, 64, 0.0, 4.0, [ 0, 128, 0 ], [ 96, 255, 96 ]);
-			
-			if (level.exits[x + "," + y]) {
-				level.next_level = level.exits[x + "," + y];
-			}
-		}
-		else if (t == 11) {
-			player.active = false;
-			player.visible = false;
-			level.cleared = true;
-			level.potato = true;
+			if (exit.flags.indexOf("potato") > -1) level.potato = true;
 			
 			camera_shake = 10;
 			camera_shake_decrement = 0.15;
@@ -457,8 +559,10 @@ window.Minia.Game = new (function() {
 			var p_lxv = Math.floor((player.x + player.x_velocity) / 8);
 			var p_rxv = Math.floor((player.x + player.x_velocity + 8) / 8);
 			
-			debug_text.push("[player] x=" + player.x + " y=" + player.y + " p_ty=" + p_ty + " p_by2=" + p_by2 + " xvel=" + player.x_velocity.toFixed(2) + " air=" + player.air);
-			debug_text.push("[walking] p_lxv=" + p_lxv + " p_rxv=" + p_rxv);
+			if (debug_info) {
+				debug_text.push("[player] x=" + player.x + " y=" + player.y + " p_ty=" + p_ty + " p_by2=" + p_by2 + " xvel=" + player.x_velocity.toFixed(2) + " air=" + player.air);
+				debug_text.push("[walking] p_lxv=" + p_lxv + " p_rxv=" + p_rxv);
+			}
 			
 			if (tiledata[level.tiles[p_lxv][p_ty]] & 0x01 || (player.air && (tiledata[level.tiles[p_lxv][p_by2]] & 0x01))) {
 				player.x_velocity = 0;
@@ -501,7 +605,7 @@ window.Minia.Game = new (function() {
 		// ====================================================================================
 		// Entities
 		// ====================================================================================
-		for (var i = 0; i < level.entities.length; i++) {
+		for (var i = 0, j = level.entities.length; i < j; i++) {
 			var e = level.entities[i];
 			
 			if (e.type == "checkpoint" && e.state == "inactive") {
@@ -600,6 +704,7 @@ window.Minia.Game = new (function() {
 		ctx_root.drawImage(level.background_ref, -bg_x, -bg_y);
 		
 		// Draw level
+		ctx_root.drawImage(cv_levelbg, -camera_x, -camera_y);
 		ctx_root.drawImage(cv_level, -camera_x, -camera_y);
 		
 		// Draw player sprite

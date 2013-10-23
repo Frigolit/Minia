@@ -84,7 +84,7 @@ window.Minia.Splash = new (function() {
 		
 		// Get resources
 		img_logo = Minia.Resources.resmap.splash.ref;
-		img_spike = Minia.Resources.tiles[3];
+		img_spike = Minia.Resources.tilemap["spikes"];
 		spr_player = Minia.Resources.sprites["player_walk_right"];
 	};
 	
