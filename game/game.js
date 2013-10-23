@@ -507,11 +507,11 @@ window.Minia.Game = new (function() {
 			player.y = Math.round(player.y + player.y_velocity);
 			
 			// Get tile coordinates
-			var p_lx = Math.floor(player.x / 8);
-			var p_rx = Math.floor((player.x + 7) / 8);
-			var p_ty = Math.floor(player.y / 8);
-			var p_by = Math.floor((player.y + 8) / 8);
-			var p_by2 = Math.floor((player.y + 7) / 8);
+			var p_lx = (player.x / 8) | 0;
+			var p_rx = ((player.x + 7) / 8) | 0;
+			var p_ty = (player.y / 8) | 0;
+			var p_by = ((player.y + 8) / 8) | 0;
+			var p_by2 = ((player.y + 7) / 8) | 0;
 			
 			// Jumping
 			if (player.jumping && !player.air) {
@@ -519,14 +519,14 @@ window.Minia.Game = new (function() {
 				player.air = 1;
 			}
 			
-			var p_jy = Math.floor((player.y + player.y_velocity) / 8);
+			var p_jy = ((player.y + player.y_velocity) / 8) | 0;
 			if (player.y_velocity < 0 && (tiledata[level.tiles[p_lx][p_jy]] & 0x01 || tiledata[level.tiles[p_rx][p_jy]] & 0x01)) {
 				player.y_velocity = 0;
 				player.y = p_jy * 8 + 8;
 				
-				p_ty = Math.floor(player.y / 8);
-				p_by = Math.floor((player.y + 8) / 8);
-				p_by2 = Math.floor((player.y + 7) / 8);
+				p_ty = (player.y / 8) | 0;
+				p_by = ((player.y + 8) / 8) | 0;
+				p_by2 = ((player.y + 7) / 8) | 0;
 			}
 			
 			// Falling
@@ -541,9 +541,9 @@ window.Minia.Game = new (function() {
 				player.y = p_ty * 8;
 				player.air = 0;
 				
-				p_ty = Math.floor(player.y / 8);
-				p_by = Math.floor((player.y + 8) / 8);
-				p_by2 = Math.floor((player.y + 7) / 8);
+				p_ty = (player.y / 8) | 0;
+				p_by = ((player.y + 8) / 8) | 0;
+				p_by2 = ((player.y + 7) / 8) | 0;
 			}
 			else {
 				player.air = 1;
@@ -569,8 +569,8 @@ window.Minia.Game = new (function() {
 				}
 			}
 			
-			var p_lxv = Math.floor((player.x + player.x_velocity) / 8);
-			var p_rxv = Math.floor((player.x + player.x_velocity + 8) / 8);
+			var p_lxv = ((player.x + player.x_velocity) / 8) | 0;
+			var p_rxv = ((player.x + player.x_velocity + 8) / 8) | 0;
 			
 			if (debug_info) {
 				debug_text.push("[player] x=" + player.x + " y=" + player.y + " p_ty=" + p_ty + " p_by2=" + p_by2 + " xvel=" + player.x_velocity.toFixed(2) + " air=" + player.air);
@@ -647,11 +647,11 @@ window.Minia.Game = new (function() {
 			var nx = p.x + p.x_velocity;
 			var ny = p.y + p.y_velocity;
 			
-			var tx = Math.floor(p.x / 8);
-			var ty = Math.floor(p.y / 8);
+			var tx = (p.x / 8) | 0;
+			var ty = (p.y / 8) | 0;
 			
-			var tnx = Math.floor(nx / 8);
-			var tny = Math.floor(ny / 8);
+			var tnx = (nx / 8) | 0;
+			var tny = (ny / 8) | 0;
 			
 			if (tnx < 0 || tnx >= level.width || tny < 0 || tny >= level.height) {
 				particles.splice(i, 1);
