@@ -168,12 +168,6 @@ window.Minia.Game = new (function() {
 		level.height = levelsrc.height;
 		level.exits = levelsrc.exits;
 		
-		/*
-		if (!level.tiles_orig) level.tiles_orig = JSON.parse(level.tiles_json);
-		if (!level.next_level_orig) level.next_level_orig = level.next_level;
-		if (!level.startpos_orig) level.startpos_orig = level.startpos;
-		*/
-		
 		level.tiles_orig = json_copy(levelsrc.layers.main);
 		
 		level.tiles = [];
@@ -268,12 +262,6 @@ window.Minia.Game = new (function() {
 					level.tiles[x][y] = level.tiles_orig[x][y];
 					redraw_tile(x, y);
 				}
-				/*
-				else if (level.tiles_orig[x][y] == 7) {	// FIXME
-					// Checkpoint entity
-					level.entities.push({ "x": x * 8, "y": y * 8, "type": "checkpoint", "state": "inactive", "sprite": "checkpoint_inactive" });
-				}
-				*/
 				
 				// Always reset tile data
 				level.tiledata[x][y] = 0;
@@ -357,8 +345,8 @@ window.Minia.Game = new (function() {
 		ctx_root.drawImage(sprites[n].frame, x, y);
 	}
 	
-	function spawn_particle(x, y, angle, velocity, color, life, sticky) {
-		if (particles.length >= 8192) return;
+	function spawn_particle(x, y, angle, velocity, color, life, sticky, nocollide) {
+		if (particles.length >= 16384) return;
 		
 		var p = {
 			"x": x,
@@ -368,7 +356,8 @@ window.Minia.Game = new (function() {
 			"velocity": velocity,
 			"color": color,
 			"life": life,
-			"sticky": sticky
+			"sticky": sticky,
+			"nocollide": nocollide,
 		};
 		
 		particles.push(p);
@@ -376,26 +365,50 @@ window.Minia.Game = new (function() {
 	
 	function linear(a, b, n) { return a + (b - a) * n; }
 	
-	function explode(x, y, w, h, count, min_velocity, max_velocity, color_min, color_max, life, sticky) {
-		for (var i = 0; i < (count || 256); i++) {
-			var n = Math.random();
-			
-			try {
-				spawn_particle(
-					x + Math.random() * w,
-					y + Math.random() * h,
-					Math.random() * (Math.PI * 2),
-					linear(min_velocity, max_velocity, Math.random()),
-					[
-						Math.round(linear(color_min[0], color_max[0], n)),
-						Math.round(linear(color_min[1], color_max[1], n)),
-						Math.round(linear(color_min[2], color_max[2], n))
-					],
-					life || 100,
-					sticky);
+	function explode(x, y, w, h, count, min_velocity, max_velocity, color_min, color_max, life, sticky, nocollide) {
+		try {
+			if (count == -1) {
+				for (var iy = 0; iy < h; iy++) {
+					for (var ix = 0; ix < w; ix++) {
+						var n = Math.random();
+						
+						spawn_particle(
+							x + ix,
+							y + iy,
+							Math.random() * (Math.PI * 2),
+							linear(min_velocity, max_velocity, n),
+							[
+								Math.round(linear(color_min[0], color_max[0], n)),
+								Math.round(linear(color_min[1], color_max[1], n)),
+								Math.round(linear(color_min[2], color_max[2], n))
+							],
+							life || 100,
+							sticky,
+							nocollide);
+					}
+				}
 			}
-			catch (e) { }
+			else {
+				for (var i = 0; i < (count || 256); i++) {
+					var n = Math.random();
+					
+					spawn_particle(
+						x + Math.random() * w,
+						y + Math.random() * h,
+						Math.random() * (Math.PI * 2),
+						linear(min_velocity, max_velocity, n),
+						[
+							Math.round(linear(color_min[0], color_max[0], n)),
+							Math.round(linear(color_min[1], color_max[1], n)),
+							Math.round(linear(color_min[2], color_max[2], n))
+						],
+						life || 100,
+						sticky,
+						nocollide);
+				}
+			}
 		}
+		catch (e) { }
 	}
 	
 	function explode_tile(x, y) {
@@ -406,7 +419,7 @@ window.Minia.Game = new (function() {
 		
 		if (level.tiles[x][y]) {
 			var c = tile_explode_colormap[level.tiles[x][y]];
-			explode(x * 8, y * 8, 8, 8, 32, 0.0, 4.0, c[0], c[1], 25);
+			explode(x * 8, y * 8, 8, 8, -1, 0.0, 4.0, c[0], c[1], 25, false, true);
 			
 			level.tiles[x][y] = 0;
 			redraw_tile(x, y);
@@ -414,7 +427,7 @@ window.Minia.Game = new (function() {
 		
 		if (bgl && bgl.tiles[x][y]) {
 			var c = tile_explode_colormap[bgl.tiles[x][y]];
-			explode(x * 8, y * 8, 8, 8, 32, 0.0, 4.0, c[0], c[1], 25);
+			explode(x * 8, y * 8, 8, 8, -1, 0.0, 4.0, c[0], c[1], 25, false, true);
 			
 			bgl.tiles[x][y] = 0;
 			redraw_layer_tile(bgl, x, y);
@@ -649,28 +662,30 @@ window.Minia.Game = new (function() {
 			
 			p.y_velocity += 0.1;
 			
-			if (p.sticky) {
-				// Stick to tiles?
-				if (tiledata[level.tiles[tx][ty]] & 0x01) {
-					ctx_level.fillStyle = "rgb(" + p.color[0] + "," + p.color[1] + "," + p.color[2] + ")";
-					ctx_level.fillRect(Math.round(p.x), Math.round(p.y), 1, 1);
+			if (!p.nocollide) {
+				if (p.sticky) {
+					// Stick to tiles?
+					if (tiledata[level.tiles[tx][ty]] & 0x01) {
+						ctx_level.fillStyle = "rgb(" + p.color[0] + "," + p.color[1] + "," + p.color[2] + ")";
+						ctx_level.fillRect(Math.round(p.x), Math.round(p.y), 1, 1);
 					
-					particles.splice(i, 1);
-					i--;
-					j--;
+						particles.splice(i, 1);
+						i--;
+						j--;
+					}
 				}
-			}
-			else {
-				// Collision detection
-				if (tiledata[level.tiles[tnx][ty]] & 0x01) {
-					p.x_velocity = -p.x_velocity / 2;
-					nx = p.x + p.x_velocity;
-				}
+				else {
+					// Collision detection
+					if (tiledata[level.tiles[tnx][ty]] & 0x01) {
+						p.x_velocity = -p.x_velocity / 2;
+						nx = p.x + p.x_velocity;
+					}
 				
-				if (tiledata[level.tiles[tx][tny]] & 0x01) {
-					p.y_velocity = -p.y_velocity / 4;
-					p.x_velocity /= 2;
-					ny = p.y + p.y_velocity;
+					if (tiledata[level.tiles[tx][tny]] & 0x01) {
+						p.y_velocity = -p.y_velocity / 4;
+						p.x_velocity /= 2;
+						ny = p.y + p.y_velocity;
+					}
 				}
 			}
 			
