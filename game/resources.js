@@ -1,31 +1,7 @@
-/******************************************************************************
-
-Ludum Dare 26 - 48h gamedev compo entry by Frigolit (http://frigolit.net)
-Visit http://www.ludumdare.com/ for more information on Ludum Dare.
-
-*******************************************************************************
-
-Copyright (C) 2013 Pontus "Frigolit" Rodling
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*****************************************************************************/
+//! Minia - http://frigolit.net/projects/minia
+//! Copyright (C) 2013 Pontus "Frigolit" Rodling
+//!
+//! Licensed under the MIT license - See LICENSE for more information
 
 window.Minia.Resources = new (function() {
 	var self = this;
@@ -112,8 +88,6 @@ window.Minia.Resources = new (function() {
 	function process_resources(cb) {
 		console.log("Initializing resources...");
 		process_tiles(0, function() {
-			console.log(tiles);
-			
 			process_sprites();
 		
 			self.sprites = sprites;
@@ -201,7 +175,42 @@ window.Minia.Resources = new (function() {
 			"checkpoint_active":   create_anim_sprite(3, 1, 4, 1/4),
 		};
 	}
-	
+
+	self.get_tile_particles = function() {
+		var r = [[]];
+
+		var cv = document.createElement("canvas");
+		var ctx = cv.getContext("2d");
+
+		cv.width = 8;
+		cv.height = 8;
+
+		for (var i = 1, j = tiles.length; i < j; i++) {
+			ctx.clearRect(0, 0, 8, 8);
+			ctx.drawImage(tiles[i], 0, 0);
+
+			var d = ctx.getImageData(0, 0, 8, 8);
+			var tr = [];
+
+			for (var y = 0; y < 8; y++) {
+				for (var x = 0; x < 8; x++) {
+					var ca = d.data[(x + y * 8) * 4 + 3];
+					if (ca < 255) continue;
+
+					var cr = d.data[(x + y * 8) * 4];
+					var cg = d.data[(x + y * 8) * 4 + 1];
+					var cb = d.data[(x + y * 8) * 4 + 2];
+
+					tr.push([x, y, [cr, cg, cb]]);
+				}
+			}
+
+			r.push(tr);
+		}
+
+		return r;
+	};
+
 	// Update sprite animations
 	self.frame = function() {
 		for (var i = 0, j = animsprites.length; i < j; i++) {

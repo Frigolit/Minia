@@ -1,31 +1,7 @@
-/******************************************************************************
-
-Ludum Dare 26 - 48h gamedev compo entry by Frigolit (http://frigolit.net)
-Visit http://www.ludumdare.com/ for more information on Ludum Dare.
-
-*******************************************************************************
-
-Copyright (C) 2013 Pontus "Frigolit" Rodling
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*****************************************************************************/
+//! Minia - http://frigolit.net/projects/minia
+//! Copyright (C) 2013 Pontus "Frigolit" Rodling
+//!
+//! Licensed under the MIT license - See LICENSE for more information
 
 window.Minia.Game = new (function() {
 	var self = this;
@@ -41,7 +17,7 @@ window.Minia.Game = new (function() {
 	var sprites;
 	var tiles;
 	var tiledata;
-	var tile_explode_colormap;
+	var tile_explode_particles;
 	
 	// Canvases
 	var cv_level = document.createElement("canvas");
@@ -74,7 +50,8 @@ window.Minia.Game = new (function() {
 		tiles = window.Minia.Resources.tiles;
 		tilemap = window.Minia.Resources.tilemap;
 		tiledata = window.Minia.Resources.tiledata;
-		tile_explode_colormap = window.Minia.Resources.tile_explode_colormap;
+
+		tile_explode_particles = window.Minia.Resources.get_tile_particles();
 	}
 	
 	self.start = function(_main, _ctx) {
@@ -95,6 +72,7 @@ window.Minia.Game = new (function() {
 	
 		if (((!player.alive && (k == 32 || k == 90 || k == 13)) || k == 82) && !level.cleared) {	// r - respawn
 			respawn();
+			return false;
 		}
 		else if (k == 37) {
 			player.walk_left = 1;
@@ -113,6 +91,9 @@ window.Minia.Game = new (function() {
 		else if (k == 27) {		// Escape - Exit to menu
 			window.Minia.Main.start_controller(window.Minia.Menu);
 		}
+		else return;
+
+		return false;
 	
 		// Debug keys
 		/*
@@ -417,20 +398,25 @@ window.Minia.Game = new (function() {
 		if (x < 0 || x >= level.width || y < 0 || y >= level.height) return;
 		if (!level.tiles[x][y] && (!bgl || !bgl.tiles[x][y])) return;
 		
+		var p;
+
 		if (level.tiles[x][y]) {
-			var c = tile_explode_colormap[level.tiles[x][y]];
-			explode(x * 8, y * 8, 8, 8, -1, 0.0, 4.0, c[0], c[1], 25, false, true);
-			
+			p = tile_explode_particles[level.tiles[x][y]];
 			level.tiles[x][y] = 0;
 			redraw_tile(x, y);
 		}
 		
 		if (bgl && bgl.tiles[x][y]) {
-			var c = tile_explode_colormap[bgl.tiles[x][y]];
-			explode(x * 8, y * 8, 8, 8, -1, 0.0, 4.0, c[0], c[1], 25, false, true);
-			
+			p = tile_explode_particles[bgl.tiles[x][y]];
 			bgl.tiles[x][y] = 0;
 			redraw_layer_tile(bgl, x, y);
+		}
+
+		if (p) {
+			for (var i = 0, j = p.length; i < j; i++) {
+				var m = p[i];
+				spawn_particle(x * 8 + m[0], y * 8 + m[1], Math.random() * (Math.PI * 2), Math.random() * 4.0, m[2], 25, 0, 1);
+			}
 		}
 	}
 	
