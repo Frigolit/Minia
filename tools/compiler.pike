@@ -6,7 +6,7 @@
 // ============================================================================
 
 /*
-Copyright (C) 2013 Pontus "Frigolit" Rodling
+Copyright (C) 2013-2016 Pontus "Frigolit" Rodling
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -40,7 +40,8 @@ constant path_tiles_src = "src/gfx/tiles.psd";
 constant path_tiles_output = "game/tiles.json";
 
 int main(int argc, array argv) {
-	cd(basename(argv[0]));
+	cd(dirname(argv[0]));
+	cd("..");
 	
 	// Build stuff
 	int r;
@@ -52,6 +53,7 @@ int main(int argc, array argv) {
 }
 
 int build_tiles() {
+	write("Building tileset...\n");
 	array psd = psd_parse(Stdio.read_file(path_tiles_src));
 	mapping data = ([
 		"tilemap": ([ ]),
